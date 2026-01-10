@@ -1,0 +1,52 @@
+student_id,name,major,email,password_hash
+12345,Alice Smith,Computer Science,alice.smith@example.edu,WklvLvVrphSodlqWhawSdvvzrug
+67890,Bob Johnson,Engineering,bob.johnson@example.edu,DqrwkhuXqhqfubswhgSdvvzrug
+23456,David Lee,Physics,david.lee@example.edu,VrphPruhFohduWhawKhuh
+34567,Eve Davis,Biology,eve.davis@example.edu,BhwDqrwkhuVlpsohSdvvzrug
+89012,Frank Wilson,Chemistry,frank.wilson@example.edu,VhfxuhSdvvzrugPdbehQrw
+90123,Grace Taylor,History,grace.taylor@example.edu,SdvvzrugWkdwQhhgvHqfubswlqj
+45678,Henry Moore,English,henry.moore@example.edu,VwlooPruhXqhqfubswhgGdwd
+56789,Ivy White,Art,ivy.white@example.edu,PruhVlpsohFohduwhawVwxii
+10111,Jack Brown,Economics,jack.brown@example.edu,HyhqPruhSodlqWhawKhuh
+11222,Karen Davis,Marketing,karen.davis@example.edu,SodlqWhawDjdlqIruWhvwlqj
+12333,Liam Wilson,Sociology,liam.wilson@example.edu,WklvLvDqrwkhuHadpsoh
+13444,Mia Taylor,Psychology,mia.taylor@example.edu,BhwDqrwkhuRqhWrHqfubsw
+14555,Noah Moore,Political Science,noah.moore@example.edu,FohduWhawFohduWhaw
+15666,Olivia White,Journalism,olivia.white@example.edu,SodlqwhawHadpsohDjdlq
+16777,Peter Brown,Education,peter.brown@example.edu,PruhXqhqfubswhgSdvvzrugv
+17888,Quinn Davis,Environmental Science,quinn.davis@example.edu,VrPdqbFohduWhawHadpsohv
+18999,Ryan Wilson,Business Administration,ryan.wilson@example.edu,PruhDqgPruhWrHqfubsw
+19000,Sophia Taylor,Music,sophia.taylor@example.edu,ZhQhhgDOrwRiUrzv
+20111,Thomas Moore,Theater,thomas.moore@example.edu,PruhFohduWhawIruHqfrglqj
+78901,Charlie Brown,Mathematics,charlie.brown@example.edu,ZhofrphWrWkhFWI
+21222,Ursula White,Dance,ursula.white@example.edu,JhwwlqjForvhWr83Urzv
+22333,Victor Brown,Philosophy,victor.brown@example.edu,VwlooJrlqjZlwkWkhFohduWhaw
+23444,Wendy Davis,Religion,wendy.davis@example.edu,ZhDuhDoprvwWkhuhQrz
+24555,Xavier Wilson,Architecture,xavier.wilson@example.edu,PruhSodlqSdvvzrugvWrHqfubsw
+25666,Yara Taylor,Law,yara.taylor@example.edu,KdoizdbWkurxjkQrz
+26777,Zachary Moore,Medicine,zachary.moore@example.edu,ZhDuhPdnlqjJrrgSurjuhvv
+27888,Amy Smith,Computer Science,amy.smith@example.edu,WklvLvJhwwlqjWhglrxv
+28999,Ben Johnson,Engineering,ben.johnson@example.edu,DoprvwWrWkhWdujhwUrzQxpehu
+29000,Cathy Brown,Mathematics,cathy.brown@example.edu,PruhXqhqfubswhgVwulqjv
+30111,Dan Lee,Physics,dan.lee@example.edu,FohduWhawHyhubzkhuh
+31222,Erin Davis,Biology,erin.davis@example.edu,ZhQhhgPruhUrzvIruVxuh
+32333,Finn Wilson,Chemistry,finn.wilson@example.edu,WklvLvJhwwlqjTxlwhUhshwlwlyh
+33444,Gina Taylor,History,gina.taylor@example.edu,SodlqWhawSodlqWhawSodlqWhaw
+34555,Hal Moore,English,hal.moore@example.edu,DoprvwWkhuhDoprvwWkhuh
+35666,Ida White,Art,ida.white@example.edu,BhwDqrwkhuOrqjSdvvzrug
+36777,Jake Brown,Economics,jake.brown@example.edu,PruhXqhqfubswhgWhaw
+37888,Kelly Davis,Marketing,kelly.davis@example.edu,DuhZhWkhuhBhw
+38999,Leo Wilson,Sociology,leo.wilson@example.edu,PruhUrzvWrWkhIloh
+39000,Mona Taylor,Psychology,mona.taylor@example.edu,JhwwlqjForvhuWr83
+40111,Nick Moore,Political Science,nick.moore@example.edu,DoprvwGrqhZlwkWkhUrzv
+41222,Oprah White,Journalism,oprah.white@example.edu,FohduWhawHyhubzkhuhVwloo
+42333,Paul Brown,Education,paul.brown@example.edu,ZhDuhDoprvwDwWkhHqg
+43444,Rita Davis,Environmental Science,rita.davis@example.edu,MxvwDIhzPruhUrzv
+44555,Sam Wilson,Business Administration,sam.wilson@example.edu,PruhPruhWrHqfubsw
+45666,Tina Taylor,Music,tina.taylor@example.edu,HqfubswHqfubswHqfubsw
+46777,Ulysses Moore,Theater,ulysses.moore@example.edu,PruhUrzvUrzvUrzv
+47888,Violet White,Dance,violet.white@example.edu,MxvwDOlwwohElwPruh
+48999,Walter Brown,Philosophy,walter.brown@example.edu,VrForvhWrWkhHqg
+49000,Xena Davis,Religion,xena.davis@example.edu,DoprvwWr83UrzvQrz
+50111,Yves Wilson,Architecture,yves.wilson@example.edu,IliwbUrzvDwOdvw
+51222,Zara Taylor,Law,zara.taylor@example.edu,GrqhIlqdoob
