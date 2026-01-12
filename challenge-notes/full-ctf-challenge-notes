@@ -1,1288 +1,280 @@
-# CTF Challenge Solutions - Complete Notes
+# CTF Challenge Solutions
 
-## Challenge 1: Playlist Pandemonium (Network Forensics)
-
-### Challenge Type
-Network traffic analysis, XOR decryption
-
-### Objective
-Analyze a PCAP file to find encrypted data fragments hidden in network packets and decrypt them to reveal a flag.
-
-### Solution Steps
-
-1. **Initial Analysis**
-   - Received file: `playlist_pandemonium.pcap`
-   - Clue: Data hidden in UDP packets on port 2468
-   - Data prefix: `LYRIC:`
-   - Encryption: XOR cipher with key `BEAT`
-
-2. **Tools Used**
-   - Wireshark (for packet analysis)
-   - CyberChef (for manual XOR decryption)
-   - Python with Scapy (for automation)
-
-3. **Manual Approach (Wireshark + CyberChef)**
-   - Applied filter: `udp.port == 2468`
-   - Located packets containing "LYRIC:"
-   - Extracted hex data after the "LYRIC:" prefix
-   - In Packet Bytes pane, found `4C 59 52 49 43 3A` (LYRIC: in hex)
-   - Selected and copied hex data AFTER `3A` (colon)
-   - Used CyberChef:
-     - Operation 1: "From Hex" (delimiter: Auto)
-     - Operation 2: "XOR" with key "BEAT" (UTF8)
-   - First fragment decrypted: `D3cr`
-   - Repeated for all packets with LYRIC: prefix
-   - Combined fragments in packet order
-
-4. **Key Learning**
-   - STACK concept: Data read as Last In, First Out
-   - Initial attempt with reversed password failed
-   - Correct solution required combining fragments in proper sequence
-
-5. **Flag Found**
-   ```
-   D3crypt_Th3_Rhythm
-   ```
-
-### Key Takeaways
-- Always extract data AFTER delimiters (not including them)
-- XOR encryption is reversible: ciphertext XOR key = plaintext
-- Packet order matters when combining fragments
-- Manual analysis helped understand the process before automation
+This document contains solutions and methodologies for completed CTF challenges.
 
 ---
 
-## Challenge 2: Where's the Artifact? (Web Enumeration)
+## Challenge Summary
 
-### Challenge Type
-Web crawling, directory enumeration
+| Challenge | Type | Status | Flag/Password |
+|-----------|------|--------|---------------|
+| Playlist Pandemonium | Network Forensics | ✅ Complete | `D3crypt_Th3_Rhythm` |
+| Where's the Artifact | Web Enumeration | ✅ Complete | Found via crawler |
+| Secret Santa | Image Steganography | ✅ Complete | `CTF{Ch1r5tm@ss_EncrypT10n_1s_fun!}` |
+| Password Cracking | Hash Analysis | ✅ Complete | `patience` |
+| Mayday | Audio/Morse Code | ✅ Complete | `KYJEDSNCXICJPNDBHVZCAFBESFESFEFEGAFE` |
+| Dino Zone Lab | Reverse Engineering | ❌ Not Completed | N/A |
 
-### Objective
-Find a hidden flag among thousands of nearly identical web pages.
-
-### Solution Steps
-
-1. **Initial Reconnaissance**
-   - Challenge presented a web application with many linked pages
-   - All pages looked similar (intentional distraction)
-   - Flag hidden on ONE specific page
-
-2. **Approach Used**
-   - Created Python web crawler using `requests` and `BeautifulSoup`
-   - Script features:
-     - Binary search pattern (check strategic points first)
-     - Parallel processing (50 concurrent threads)
-     - Pattern matching for flag formats: `flag{...}`, `artifact{...}`, etc.
-
-3. **Script Logic**
-   ```python
-   # Key components:
-   - Start at middle page (binary search approach)
-   - Check 1st quarter, 3rd quarter, start, end
-   - If not found in strategic points, do full parallel sweep
-   - Search for common flag patterns in page content
-   ```
-
-4. **Optimization**
-   - Used threading to check 50 pages simultaneously
-   - Reduced search time from ~83 minutes to ~2 minutes
-   - Implemented rate limiting to avoid overwhelming server
-   - Added SSL verification bypass for challenge environment
-
-5. **Flag Found**
-   - Located on one of the item pages (exact page varied)
-   - Format: `flag{...}` or `artifact{...}`
-
-### Key Takeaways
-- Binary search is more efficient than linear for large datasets
-- Parallel processing dramatically reduces enumeration time
-- Always implement proper error handling for network operations
-- Rate limiting prevents connection issues with target servers
+**Completion Rate:** 5/6 (83%)
 
 ---
 
-## Challenge 3: Secret Santa (Image Steganography)
+## 1. Playlist Pandemonium
 
-### Challenge Type
-Image steganography, LSB extraction, multi-layer cipher decryption
+### Overview
+Network traffic analysis challenge requiring extraction and decryption of data fragments hidden in UDP packets.
 
-### Objective
-Extract and decode a hidden flag embedded inside an image file. The flag was hidden in the image pixels and encrypted using multiple classical ciphers.
-
-### Challenge Clues
-- "The picture contains the flag"
-- "Possibly encrypted by Santa"
-- Required investigation, decoding, and analysis
-- Flag format: `CTF{...}`
-
-### Solution Steps
-
-1. **Initial File Analysis**
-   - Verified file was valid PNG by checking magic bytes
-   - Checked for easy wins:
-     - Appended data after `IEND` chunk - None found
-     - PNG text chunks (`tEXt`, `iTXt`, `zTXt`) - None found
-   - Conclusion: Flag hidden using pixel-based steganography
-
-2. **LSB (Least Significant Bit) Extraction**
-   - Converted image to raw RGB bytes
-   - Extracted the least significant bit from every byte
-   - Repacked bits into bytes using MSB-first order
-   
-   **Result:** 
-   ```
-   34:XGU{Xs1i5gn@hh_VmxibkG10m_1h_ufm!}Uc
-   ```
-   
-   **Meaningful payload:**
-   ```
-   Xs1i5gn@hh_VmxibkG10m_1h_ufm!
-   ```
-
-3. **Cipher Identification**
-   - Hint: "encrypted by Santa" → classic substitution ciphers
-   - Common in holiday-themed CTFs
-   - Tested multiple cipher combinations
-
-4. **Decryption Process**
-   Applied cipher sequence in exact order:
-   1. **ROT13** (Caesar cipher, shift 13)
-   2. **Atbash** (reverse alphabet substitution)
-   3. **ROT13** again
-   
-   **Result:**
-   ```
-   Ch1r5tm@ss_EncrypT10n_1s_fun!
-   ```
-
-5. **Critical Learning: Don't Over-Normalize**
-   - Initial instinct: Clean leetspeak to normal English
-     - `Christmas_Encryption_is_fun!` ❌ REJECTED
-   - Correct approach: Submit exact cipher output
-     - `Ch1r5tm@ss_EncrypT10n_1s_fun!` ✅ ACCEPTED
-
-6. **Flag Found**
-   ```
-   CTF{Ch1r5tm@ss_EncrypT10n_1s_fun!}
-   ```
+### Solution Method
+1. **Analysis:** Used Wireshark to filter UDP port 2468 packets containing `LYRIC:` prefix
+2. **Extraction:** Copied hex data after `4C 59 52 49 43 3A` (LYRIC: in hex)
+3. **Decryption:** Applied XOR cipher with key `BEAT` using CyberChef
+4. **Assembly:** Combined decrypted fragments in packet order
 
 ### Tools Used
-- Python with PIL/Pillow (image manipulation)
-- Bit manipulation techniques
-- CyberChef or custom cipher scripts
-
-### Key Takeaways
-- **Never over-normalize decrypted output** - CTFs expect exact cipher results
-- Always trust:
-  - Bit extraction results
-  - Cipher outputs
-  - Platform flag format consistency
-- **"Santa" or holiday hints** often imply ROT13 + Atbash cipher chains
-- LSB steganography is a common technique for hiding data in images
-- When one cipher doesn't work, try chaining multiple ciphers
-- Leetspeak in output is intentional, not an error to fix
-
-### Technical Details
-
-**LSB Extraction Code Concept:**
-```python
-# Extract LSB from each pixel byte
-bits = []
-for byte in image_bytes:
-    bits.append(byte & 1)  # Get least significant bit
-
-# Repack into bytes (MSB-first)
-result_bytes = []
-for i in range(0, len(bits), 8):
-    byte = 0
-    for j in range(8):
-        byte = (byte << 1) | bits[i + j]
-    result_bytes.append(byte)
-```
-
-**Cipher Chain:**
-```
-Original: Xs1i5gn@hh_VmxibkG10m_1h_ufm!
-   ↓ ROT13
-Intermediate: ...
-   ↓ Atbash
-Intermediate: ...
-   ↓ ROT13
-Final: Ch1r5tm@ss_EncrypT10n_1s_fun!
-```
-
----
-
-## Challenge 4: Password Cracking (Hash Analysis)
-
-### Challenge Type
-Cryptography, hash cracking, password recovery
-
-### Objective
-Crack two password hashes - one regular MD5 hash and one salted bcrypt hash.
-
-### Given Hashes
-
-**Hash 1 (Regular):**
-```
-29aa7acafb73866d6571e1a72f46c146
-```
-
-**Hash 2 (Salty):**
-```
-$2a$04$R3woFi8JQxib7WYkzCeLFeSk2Kbuq3qcddLKGZi4te1TluMX2y/cm
-```
-
----
-
-### Part 1: Cracking the Regular Hash (MD5)
-
-#### 1. Hash Analysis
-Used CyberChef to analyze the hash:
-```
-https://gchq.github.io/CyberChef/#recipe=Analyse_hash()
-```
-
-**Analysis Result:**
-Based on 32-character length, possible hash types:
-- MD5 ✓
-- MD4
-- MD2
-- HAVAL-128
-- RIPEMD-128
-- Snefru
-- Tiger-128
-
-**Conclusion:** Most likely MD5
-
-#### 2. Cracking Method
-Used CyberChef or online MD5 databases:
-- MD5 is not salted, making it vulnerable to rainbow tables
-- Common passwords easily cracked via lookup
-- CyberChef can automatically crack weak MD5 hashes
-
-#### 3. Result
-Successfully cracked using CyberChef
-
----
-
-### Part 2: Cracking the Salty Password (bcrypt)
-
-#### 1. Hash Identification
-Hash signature: `$2a$04$...`
-
-**Hash Structure Breakdown:**
-```
-$2a$04$R3woFi8JQxib7WYkzCeLFeSk2Kbuq3qcddLKGZi4te1TluMX2y/cm
- │   │   └─────────────────┬─────────────────────────────┘
- │   │                     └─ Salt + Hash
- │   └─ Cost factor (04 = 2^4 = 16 iterations)
- └─ bcrypt variant identifier
-```
-
-**Key Details:**
-- `$2a# CTF Challenge Solutions - Complete Notes
-
-## Challenge 1: Playlist Pandemonium (Network Forensics)
-
-### Challenge Type
-Network traffic analysis, XOR decryption
-
-### Objective
-Analyze a PCAP file to find encrypted data fragments hidden in network packets and decrypt them to reveal a flag.
-
-### Solution Steps
-
-1. **Initial Analysis**
-   - Received file: `playlist_pandemonium.pcap`
-   - Clue: Data hidden in UDP packets on port 2468
-   - Data prefix: `LYRIC:`
-   - Encryption: XOR cipher with key `BEAT`
-
-2. **Tools Used**
-   - Wireshark (for packet analysis)
-   - CyberChef (for manual XOR decryption)
-   - Python with Scapy (for automation)
-
-3. **Manual Approach (Wireshark + CyberChef)**
-   - Applied filter: `udp.port == 2468`
-   - Located packets containing "LYRIC:"
-   - Extracted hex data after the "LYRIC:" prefix
-   - In Packet Bytes pane, found `4C 59 52 49 43 3A` (LYRIC: in hex)
-   - Selected and copied hex data AFTER `3A` (colon)
-   - Used CyberChef:
-     - Operation 1: "From Hex" (delimiter: Auto)
-     - Operation 2: "XOR" with key "BEAT" (UTF8)
-   - First fragment decrypted: `D3cr`
-   - Repeated for all packets with LYRIC: prefix
-   - Combined fragments in packet order
-
-4. **Key Learning**
-   - STACK concept: Data read as Last In, First Out
-   - Initial attempt with reversed password failed
-   - Correct solution required combining fragments in proper sequence
-
-5. **Flag Found**
-   ```
-   D3crypt_Th3_Rhythm
-   ```
-
-### Key Takeaways
-- Always extract data AFTER delimiters (not including them)
-- XOR encryption is reversible: ciphertext XOR key = plaintext
-- Packet order matters when combining fragments
-- Manual analysis helped understand the process before automation
-
----
-
-## Challenge 2: Where's the Artifact? (Web Enumeration)
-
-### Challenge Type
-Web crawling, directory enumeration
-
-### Objective
-Find a hidden flag among thousands of nearly identical web pages.
-
-### Solution Steps
-
-1. **Initial Reconnaissance**
-   - Challenge presented a web application with many linked pages
-   - All pages looked similar (intentional distraction)
-   - Flag hidden on ONE specific page
-
-2. **Approach Used**
-   - Created Python web crawler using `requests` and `BeautifulSoup`
-   - Script features:
-     - Binary search pattern (check strategic points first)
-     - Parallel processing (50 concurrent threads)
-     - Pattern matching for flag formats: `flag{...}`, `artifact{...}`, etc.
-
-3. **Script Logic**
-   ```python
-   # Key components:
-   - Start at middle page (binary search approach)
-   - Check 1st quarter, 3rd quarter, start, end
-   - If not found in strategic points, do full parallel sweep
-   - Search for common flag patterns in page content
-   ```
-
-4. **Optimization**
-   - Used threading to check 50 pages simultaneously
-   - Reduced search time from ~83 minutes to ~2 minutes
-   - Implemented rate limiting to avoid overwhelming server
-   - Added SSL verification bypass for challenge environment
-
-5. **Flag Found**
-   - Located on one of the item pages (exact page varied)
-   - Format: `flag{...}` or `artifact{...}`
-
-### Key Takeaways
-- Binary search is more efficient than linear for large datasets
-- Parallel processing dramatically reduces enumeration time
-- Always implement proper error handling for network operations
-- Rate limiting prevents connection issues with target servers
-
----
-
-## Challenge 3: Secret Santa (Image Steganography)
-
-### Challenge Type
-Image steganography, LSB extraction, multi-layer cipher decryption
-
-### Objective
-Extract and decode a hidden flag embedded inside an image file. The flag was hidden in the image pixels and encrypted using multiple classical ciphers.
-
-### Challenge Clues
-- "The picture contains the flag"
-- "Possibly encrypted by Santa"
-- Required investigation, decoding, and analysis
-- Flag format: `CTF{...}`
-
-### Solution Steps
-
-1. **Initial File Analysis**
-   - Verified file was valid PNG by checking magic bytes
-   - Checked for easy wins:
-     - Appended data after `IEND` chunk - None found
-     - PNG text chunks (`tEXt`, `iTXt`, `zTXt`) - None found
-   - Conclusion: Flag hidden using pixel-based steganography
-
-2. **LSB (Least Significant Bit) Extraction**
-   - Converted image to raw RGB bytes
-   - Extracted the least significant bit from every byte
-   - Repacked bits into bytes using MSB-first order
-   
-   **Result:** 
-   ```
-   34:XGU{Xs1i5gn@hh_VmxibkG10m_1h_ufm!}Uc
-   ```
-   
-   **Meaningful payload:**
-   ```
-   Xs1i5gn@hh_VmxibkG10m_1h_ufm!
-   ```
-
-3. **Cipher Identification**
-   - Hint: "encrypted by Santa" → classic substitution ciphers
-   - Common in holiday-themed CTFs
-   - Tested multiple cipher combinations
-
-4. **Decryption Process**
-   Applied cipher sequence in exact order:
-   1. **ROT13** (Caesar cipher, shift 13)
-   2. **Atbash** (reverse alphabet substitution)
-   3. **ROT13** again
-   
-   **Result:**
-   ```
-   Ch1r5tm@ss_EncrypT10n_1s_fun!
-   ```
-
-5. **Critical Learning: Don't Over-Normalize**
-   - Initial instinct: Clean leetspeak to normal English
-     - `Christmas_Encryption_is_fun!` ❌ REJECTED
-   - Correct approach: Submit exact cipher output
-     - `Ch1r5tm@ss_EncrypT10n_1s_fun!` ✅ ACCEPTED
-
-6. **Flag Found**
-   ```
-   CTF{Ch1r5tm@ss_EncrypT10n_1s_fun!}
-   ```
-
-### Tools Used
-- Python with PIL/Pillow (image manipulation)
-- Bit manipulation techniques
-- CyberChef or custom cipher scripts
-
-### Key Takeaways
-- **Never over-normalize decrypted output** - CTFs expect exact cipher results
-- Always trust:
-  - Bit extraction results
-  - Cipher outputs
-  - Platform flag format consistency
-- **"Santa" or holiday hints** often imply ROT13 + Atbash cipher chains
-- LSB steganography is a common technique for hiding data in images
-- When one cipher doesn't work, try chaining multiple ciphers
-- Leetspeak in output is intentional, not an error to fix
-
-### Technical Details
-
-**LSB Extraction Code Concept:**
-```python
-# Extract LSB from each pixel byte
-bits = []
-for byte in image_bytes:
-    bits.append(byte & 1)  # Get least significant bit
-
-# Repack into bytes (MSB-first)
-result_bytes = []
-for i in range(0, len(bits), 8):
-    byte = 0
-    for j in range(8):
-        byte = (byte << 1) | bits[i + j]
-    result_bytes.append(byte)
-```
-
-**Cipher Chain:**
-```
-Original: Xs1i5gn@hh_VmxibkG10m_1h_ufm!
-   ↓ ROT13
-Intermediate: ...
-   ↓ Atbash
-Intermediate: ...
-   ↓ ROT13
-Final: Ch1r5tm@ss_EncrypT10n_1s_fun!
-```
-
- = bcrypt variant
-- `04` = cost factor (very low - easier to crack)
-- Rest = salt + hash combined
-
-#### 2. Setup Process
-
-**Step 1: Create hash file**
+- Wireshark (packet analysis)
+- CyberChef (XOR decryption)
+- Python with Scapy (automation)
+
+### Key Commands
 ```bash
-echo '$2a$04$R3woFi8JQxib7WYkzCeLFeSk2Kbuq3qcddLKGZi4te1TluMX2y/cm' > hash.txt
-```
-
-**Step 2: Download rockyou wordlist**
-```bash
-cd ~
-wget https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt
-```
-- Contains ~14 million common passwords
-- Most popular wordlist for password cracking
-
-**Step 3: Run hashcat**
-```bash
-hashcat -m 3200 -a 0 hash.txt ~/rockyou.txt
-```
-
-#### 3. Command Breakdown
-
-**Full Command:**
-```bash
-hashcat -m 3200 -a 0 hash.txt ~/rockyou.txt
-```
-
-**Component Explanation:**
-
-**`hashcat`**
-- The hash cracking program
-
-**`-m 3200`**
-- `-m` = Mode flag (hash algorithm type)
-- `3200` = bcrypt hash mode
-- Tells hashcat which algorithm to use
-
-**`-a 0`**
-- `-a` = Attack mode flag
-- `0` = Straight/Dictionary attack
-- Tries every word in wordlist as-is, one by one
-
-**Other Attack Modes:**
-- `-a 0` = Dictionary (straight)
-- `-a 1` = Combination (combine words from two lists)
-- `-a 3` = Brute-force/Mask (try all character combinations)
-- `-a 6` = Hybrid wordlist + mask
-- `-a 7` = Hybrid mask + wordlist
-
-**`hash.txt`**
-- Input file containing the hash to crack
-- Can contain multiple hashes (one per line)
-
-**`~/rockyou.txt`**
-- `~` = Home directory
-- Contains the password wordlist
-- ~14 million common passwords
-
-#### 4. How Hashcat Works
-
-**Process Flow:**
-1. Hashcat reads the bcrypt hash from `hash.txt`
-2. Opens `rockyou.txt` wordlist
-3. Takes first password (e.g., "123456")
-4. Hashes it using bcrypt with the **same salt** from target hash
-5. Compares result to target hash
-6. If no match, moves to next password (e.g., "password")
-7. Repeats until match found or wordlist exhausted
-
-**Key Concept:**
-```
-Password Candidate → bcrypt(password, same_salt, cost=04) → Compare with Target
-```
-
-#### 5. View Cracked Password
-
-**Command:**
-```bash
-hashcat -m 3200 hash.txt --show
-```
-
-**Output Format:**
-```
-$2a$04$R3woFi8JQxib7WYkzCeLFeSk2Kbuq3qcddLKGZi4te1TluMX2y/cm:patience
-```
-
-**Result:**
-```
-Password: patience
-```
-
-#### 6. Performance Notes
-
-**Why This Was Fast:**
-- **Low cost factor (04)**: Only 2^4 = 16 iterations
-- Modern bcrypt typically uses cost 10-12 (1024-4096 iterations)
-- Password "patience" appears early in rockyou.txt
-- Took approximately 35 seconds
-
-**Cracking Stats:**
-- Time: ~35 seconds
-- Progress: Only 0.03% through wordlist when found
-- Speed: ~3,954 H/s (hashes per second)
-
----
-
-### Key Differences: MD5 vs bcrypt
-
-| Feature | MD5 | bcrypt |
-|---------|-----|--------|
-| **Salt** | None (in this case) | Built-in |
-| **Speed** | Very fast | Intentionally slow |
-| **Security** | Weak | Strong |
-| **Cracking Time** | Instant (rainbow tables) | Slow (requires computation) |
-| **Use Today** | Deprecated for passwords | Recommended |
-| **Iterations** | 1 | 2^cost (configurable) |
-
-### Why bcrypt Is Better
-
-1. **Salted by default** - Prevents rainbow table attacks
-2. **Adaptive cost** - Can increase difficulty over time
-3. **Intentionally slow** - Makes brute force expensive
-4. **Resistant to GPU cracking** - Memory-hard algorithm
-
-### Why This bcrypt Was Crackable
-
-1. **Very low cost factor (04)** - Only 16 iterations
-2. **Common password** - "patience" in popular wordlist
-3. **Modern cost should be 10+** - 1024+ iterations
-
----
-
-### Tools Used
-
-**CyberChef:**
-- Hash analysis
-- MD5 cracking
-- URL: https://gchq.github.io/CyberChef/
-
-**Hashcat:**
-- Advanced password cracking
-- GPU acceleration support
-- Multiple hash algorithm support
-- Wordlist and rule-based attacks
-
-**Wordlists:**
-- rockyou.txt (~14M passwords)
-- Most common password wordlist
-- From real data breaches
-
----
-
-### Commands Reference
-
-```bash
-# Create hash file
-echo 'HASH_HERE' > hash.txt
-
-# Download rockyou
-wget https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt
-
-# Basic hashcat
-hashcat -m MODE -a 0 hash.txt wordlist.txt
-
-# With rules (more effective)
-hashcat -m MODE -a 0 hash.txt wordlist.txt -r rules/best64.rule
-
-# Show cracked passwords
-hashcat -m MODE hash.txt --show
-
-# Resume interrupted session
-hashcat -m MODE hash.txt wordlist.txt --restore
-
-# Check hash mode
-hashcat --help | grep -i "bcrypt"
-```
-
-### Common Hashcat Modes
-
-```
--m 0     = MD5
--m 100   = SHA1
--m 1000  = NTLM (Windows)
--m 1400  = SHA256
--m 1800  = SHA512
--m 3200  = bcrypt
--m 5600  = NetNTLMv2
--m 13100 = Kerberos TGS
-```
-
----
-
-### Key Takeaways
-
-1. **Hash identification is crucial** - Different algorithms require different approaches
-2. **Salt matters** - Salted hashes are much harder to crack
-3. **Cost factors matter** - Higher cost = slower cracking
-4. **Wordlists are effective** - Most passwords are common/weak
-5. **MD5 is broken** - Never use MD5 for passwords
-6. **bcrypt is strong** - When used with proper cost factor (10+)
-7. **Tools matter** - Right tool for the job (CyberChef vs Hashcat)
-
-### Security Lessons
-
-**For Users:**
-- Use long, unique passwords
-- Use password managers
-- Enable 2FA where possible
-
-**For Developers:**
-- Never use MD5 for passwords
-- Use bcrypt/argon2/scrypt
-- Set appropriate cost factors (10-12 for bcrypt)
-- Never implement crypto yourself
-
----
-
-## Challenge 5: Mayday (Audio Steganography & Morse Code)
-
-### Challenge Type
-Audio analysis, Morse code decoding, cipher decryption
-
-### Objective
-Extract and decode a hidden flag from an audio file containing Morse code, then decrypt the resulting cipher text.
-
-### Given
-- Audio file containing Morse code signals
-
-### Solution Steps
-
-#### 1. Audio Analysis
-- Received audio file with distinctive beeping patterns
-- Recognized as Morse code (dots and dashes)
-- Need to convert audio signals to text
-
-#### 2. Morse Code Decoding
-**Tool Used:** Online Morse Code Audio Decoder
-```
-https://morsecode.world/international/decoder/audio-decoder-adaptive.html
-```
-
-**Process:**
-1. Uploaded audio file to decoder
-2. Adaptive decoder automatically detected timing
-3. Converted beeps to Morse code
-4. Morse code translated to letters
-
-**Decoded Output:**
-```
-SGEJGE SGEJGE, CK GXK YOTQOTM. VRKGYK AYK ZNK LURRUCOTM LRGM ZU 
-IUSVRKZ ZNOY INGRRRKTMK QEPKJYTID0IPVTJHNBFIGLHKYLKYLKLKMGLK
-```
-
-#### 3. Cipher Identification
-**Analysis:**
-- Text appears encrypted (gibberish)
-- "MAYDAY MAYDAY" pattern suggests ROT cipher
-- Emergency distress signal typically repeated
-
-#### 4. Decryption with CyberChef
-**Tool:** CyberChef - https://gchq.github.io/CyberChef/
-
-**Recipe Used:**
-```
-ROT13 (with brute force option)
-- Rotate lower case chars: ✓
-- Rotate upper case chars: ✓  
-- Rotate numbers: ✗
-- Amount: 20 (auto-detected)
-```
-
-**Process:**
-1. Pasted Morse-decoded text into CyberChef input
-2. Applied ROT13 operation
-3. Used brute force mode to test all rotations (1-25)
-4. ROT20 revealed readable text
-
-**Decrypted Output:**
-```
-MAYDAY MAYDAY, WE ARE SINKING. PLEASE USE THE FOLLOWING FLAG TO 
-COMPLETE THIS CHALLENGE KYJEDSNCXICJPNDBHVZCAFBESFESFEFEGAFE
-```
-
-#### 5. Flag Extraction
-**Message Context:**
-- Classic "Mayday" distress call
-- Humorous reference to "sinking" ship
-- Clear instruction to use provided string as flag
-
-**Flag Found:**
-```
-KYJEDSNCXICJPNDBHVZCAFBESFESFEFEGAFE
-```
-
----
-
-### Tools Used
-
-**Morse Code Audio Decoder:**
-- Website: https://morsecode.world/international/decoder/audio-decoder-adaptive.html
-- Features:
-  - Automatic timing detection
-  - Adaptive algorithm for varying speeds
-  - Direct audio file upload
-  - Real-time decoding
-
-**CyberChef:**
-- ROT13/ROTn cipher
-- Brute force mode (tries all rotations)
-- Visual feedback for readable text
-
----
-
-### Technical Details
-
-#### Morse Code Basics
-- **Dot (·)**: Short signal
-- **Dash (−)**: Long signal (3× dot length)
-- **Space**: Between letters (3× dot length)
-- **Longer space**: Between words (7× dot length)
-
-#### International Morse Code
-```
-A ·−    B −···  C −·−·  D −··   E ·
-F ··−·  G −−·   H ····  I ··    J ·−−−
-K −·−   L ·−··  M −−    N −·    O −−−
-P ·−−·  Q −−·−  R ·−·   S ···   T −
-U ··−   V ···−  W ·−−   X −··−  Y −·−−
-Z −−··
-```
-
-#### ROT Cipher (Caesar Cipher)
-- Substitution cipher
-- Shifts each letter by fixed number of positions
-- ROT13 most common (shift by 13)
-- This challenge used ROT20 (shift by 20)
-
-**Example (ROT20):**
-```
-Original: SGEJGE
-Shift +20: MAYDAY
-```
-
-**Alphabet Shift:**
-```
-A→U, B→V, C→W, D→X, E→Y, F→Z, G→A, H→B, ...
-S→M, G→A, E→Y, J→D, G→A, E→Y
-```
-
----
-
-### Why This Challenge Was Clever
-
-1. **Multi-Layer Encoding:**
-   - Layer 1: Audio → Morse Code
-   - Layer 2: Morse Code → Cipher Text
-   - Layer 3: ROT20 → Plain Text
-
-2. **Distress Call Theme:**
-   - "Mayday" is universal distress signal
-   - Morse code historically used for SOS
-   - Maritime/aviation emergency context
-
-3. **Tool Chain:**
-   - Required specialized tool for audio
-   - Required cipher analysis
-   - Combined audio and text analysis skills
-
----
-
-### Key Takeaways
-
-1. **Audio steganography isn't always in pixels** - Audio files can hide data in:
-   - Morse code patterns
-   - Frequency shifts
-   - Spectrogram images
-   - LSB in audio samples
-
-2. **Morse code is still relevant in CTFs** - Classic encoding method that:
-   - Has simple patterns
-   - Can be embedded in various media
-   - Requires specialized tools to decode efficiently
-
-3. **Layered encryption is common** - Real challenges often have:
-   - Multiple encoding layers
-   - Different tools needed at each step
-   - Progressive revelation of data
-
-4. **Context clues matter** - "Mayday" hint suggested:
-   - Emergency/distress theme
-   - Possible maritime/aviation context
-   - ROT cipher (common in themed challenges)
-
-5. **Brute force when unsure** - ROT cipher has only 25 possibilities:
-   - Quick to try all options
-   - CyberChef makes it visual
-   - One will be obviously correct
-
----
-
-### Alternative Tools
-
-**For Morse Code Decoding:**
-- CyberChef (has Morse decode built-in)
-- Audacity (visualize audio, manual decode)
-- Online decoders (various available)
-- Python libraries (morse-talk, morse-code-translator)
-
-**For ROT Cipher:**
-- CyberChef (visual, interactive)
-- Command line: `echo "text" | tr 'A-Za-z' 'N-ZA-Mn-za-m'` (ROT13)
-- Python: `codecs.encode(text, 'rot_13')`
-- Online ROT decoders
-
----
-
-### Challenge Flow Summary
-
-```
-Audio File (beeps)
-    ↓
-Morse Code Decoder
-    ↓
-Encrypted Text: "SGEJGE SGEJGE, CK GXK YOTQOTM..."
-    ↓
-ROT20 Decryption
-    ↓
-Plain Text: "MAYDAY MAYDAY, WE ARE SINKING..."
-    ↓
-Flag: KYJEDSNCXICJPNDBHVZCAFBESFESFEFEGAFE
-```
-
----
-
-## Challenge 6: Dino Zone Lab (Reverse Engineering - NOT COMPLETED)
-
-### Challenge Type
-Reverse engineering, cryptanalysis, permutation solving
-
-### Objective
-Find the correct order of a jumbled 8-letter passcode using checksum validation.
-
-### Challenge Description
-- Lab door locked due to system malfunction
-- Jumbled passcode: `ROWMBLFG`
-- Passcode must be read as a STACK (LIFO - Last In, First Out)
-- Each letter has unique ID
-- Checksum formula: `Σ(position × letter_id)` where position starts at 1
-- Must find correct order that matches the checksum
-
-### Work Completed
-
-1. **Initial Analysis**
-   - Explored web application at challenge URL
-   - Found two sections:
-     - "The Dino Zone App" (passcode generator)
-     - "Enter the passcode" (stack interface)
-
-2. **Following "John Hammond's Steps"**
-   - Entered jumbled passcode `ROWMBLFG` to trigger download
-   - Downloaded multiple `steps.txt` files with instructions
-   - Message from "John Hammond" appeared
-   - Files contained generic instructions but no letter IDs or checksum values
-
-3. **Solution Attempts**
-   - **Try #1**: Reverse order `GFLBMWOR` - Failed
-   - **Try #2**: Original jumbled `ROWMBLFG` - Failed (but triggered file download)
-   - **Try #3**: Alphabetical `BFGLMORW` - Failed
-   - Created smart pattern solver testing 24 likely patterns - All failed
-   - Attempted full brute force approach
-
-4. **Tools Developed**
-   - **Pattern Guesser**: Tested common permutation patterns
-   - **Smart Solver**: 24 most likely patterns (rotations, reversals, splits)
-   - **Full Brute Force**: Tries all 40,320 permutations with progress saving
-   - **Reliable Brute Force**: With error handling and resume capability
-
-5. **Investigation Conducted**
-   - Analyzed page source for hidden data
-   - Checked Network tab for downloadable resources
-   - Found `injected.js` file (hint: "some may decompile")
-   - Examined multiple downloaded files
-   - All `steps.txt` files contained identical generic instructions
-
-### Challenges Encountered
-
-1. **Missing Critical Data**
-   - Letter IDs (R=?, O=?, W=?, M=?, B=?, L=?, F=?, G=?) never found
-   - Checksum value never found
-   - Without these values, cannot calculate correct permutation
-
-2. **Brute Force Limitations**
-   - 40,320 total permutations to try
-   - Server connection issues during automated attempts
-   - Time constraints (2+ hours estimated for full brute force)
-   - Rate limiting caused frequent errors
-
-3. **Data Location Unknown**
-   - `injected.js` identified but data not extracted
-   - Possible the data was in obfuscated JavaScript
-   - May have required decompiling or advanced reverse engineering
-
-### Hint Analysis
-
-- **"Follow the steps of John Hammond"**: Reference to Jurassic Park character
-- **"Passcode read as STACK"**: LIFO order matters
-- **"Not all doors open on first knock"**: Multiple attempts expected
-- **"Try to IDA (investigate, decode, analyze)"**: Reverse engineering hint
-- **"Some may decompile"**: JavaScript or compiled file contains the data ⚠️ Key hint not fully explored
-
-### Why Not Completed
-
-**Primary Reason:** Unable to locate or extract the letter IDs and checksum from `injected.js` or other resources.
-
-**What Was Needed:**
-```python
-# Required data that was never found:
-letter_ids = {'R': ?, 'O': ?, 'W': ?, 'M': ?, 'B': ?, 'L': ?, 'F': ?, 'G': ?}
-target_checksum = ???
-
-# Then could solve with:
-for perm in permutations("ROWMBLFG"):
-    if calculate_checksum(perm, letter_ids) == target_checksum:
-        print(f"Found: {perm}")
-```
-
-**Time Constraints:** Full brute force would have taken 2+ hours with unreliable server connections.
-
-### What Would Be Needed to Complete
-
-1. **Extract `injected.js` properly**
-   - Download the file
-   - Deobfuscate if needed
-   - Search for letter ID assignments and checksum value
-
-2. **Alternative: Complete brute force**
-   - Run overnight
-   - Better error handling
-   - More patient approach
-
-3. **Possible EXE file**
-   - Challenge mentioned downloadable EXE
-   - Never located despite extensive searching
-   - May have contained the required data
-
-### Key Learnings Despite Not Completing
-
-1. **Challenge design insight**: Data hiding in obfuscated JavaScript
-2. **Brute force strategies**: Progress saving, error handling, resume capability
-3. **Network analysis**: CSRF tokens, session management
-4. **Python scripting**: Created multiple solver approaches
-5. **Persistence matters**: Sometimes challenges require more time/patience
-
-### Scripts Created
-
-1. **dino_passcode_solver.py** - Permutation solver with checksum (needs data)
-2. **dino_brute_force.py** - Full permutation brute force
-3. **dino_smart_solver.py** - Pattern-based smart solver (24 patterns)
-4. **dino_final_brute.py** - Reliable brute force with progress saving
-
-All scripts were well-designed and would work if given more time or if the letter IDs/checksum were found.
-
----
-
-### Challenge Type
-Reverse engineering, cryptanalysis, permutation solving
-
-### Objective
-Find the correct order of a jumbled 8-letter passcode using checksum validation.
-
-### Challenge Description
-- Lab door locked due to system malfunction
-- Jumbled passcode: `ROWMBLFG`
-- Passcode must be read as a STACK (LIFO - Last In, First Out)
-- Each letter has unique ID
-- Checksum formula: `Σ(position × letter_id)` where position starts at 1
-- Must find correct order that matches the checksum
-
-### Solution Attempts
-
-1. **Initial Analysis**
-   - Explored web application at challenge URL
-   - Found two sections:
-     - "The Dino Zone App" (passcode generator)
-     - "Enter the passcode" (stack interface)
-
-2. **Following "John Hammond's Steps"**
-   - Entered jumbled passcode `ROWMBLFG` to trigger download
-   - Downloaded `steps.txt` with instructions (but no letter IDs/checksum)
-   - Message from "John Hammond" appeared
-   - Multiple steps.txt files downloaded but all contained same generic instructions
-
-3. **Attempted Solutions**
-   - **Try #1**: Reverse order `GFLBMWOR` - Failed
-   - **Try #2**: Original jumbled `ROWMBLFG` - Failed (but triggered file download)
-   - **Try #3**: Alphabetical `BFGLMORW` - Failed
-   - Created smart pattern solver testing 24 likely patterns - All failed
-
-4. **Tools Developed**
-   - **Pattern Guesser**: Tested common permutation patterns
-   - **Smart Solver**: 24 most likely patterns (rotations, reversals, splits)
-   - **Full Brute Force**: Tries all 40,320 permutations with progress saving
-
-5. **Current Status**
-   - Letter IDs not found in any downloaded files
-   - Checksum value not found in any downloaded files
-   - `injected.js` file identified (hint: "some may decompile")
-   - Need to extract data from `injected.js` to get letter IDs and checksum
-
-### Hint Analysis
-- **"Follow the steps of John Hammond"**: Reference to Jurassic Park character
-- **"Passcode read as STACK"**: LIFO order matters
-- **"Not all doors open on first knock"**: Multiple attempts expected
-- **"Try to IDA (investigate, decode, analyze)"**: Reverse engineering hint
-- **"Some may decompile"**: JavaScript or compiled file contains the data
-
-### Next Steps (To Complete)
-1. Extract and analyze `injected.js` code
-2. Search for letter ID assignments (R=?, O=?, etc.)
-3. Find checksum value
-4. Use Python solver with correct values:
-   ```python
-   letter_ids = {'R': ?, 'O': ?, 'W': ?, 'M': ?, 'B': ?, 'L': ?, 'F': ?, 'G': ?}
-   target_checksum = ???
-   # Try all permutations and match checksum
-   ```
-
-### Key Learnings So Far
-- CSRF tokens must be handled in web form submissions
-- Progress saving allows resuming long-running brute force attacks
-- Challenge may require reverse engineering obfuscated JavaScript
-- Sometimes data isn't where expected - must explore all resources
-- Error handling crucial for network-based brute force
-
----
-
-## Tools & Techniques Mastered
-
-### Network Analysis
-- Wireshark packet filtering
-- Protocol analysis (UDP, TCP)
-- Hex data extraction
-- Following packet streams
-
-### Cryptography
-- XOR cipher encryption/decryption
-- Understanding reversible encryption
-- Key-based decryption patterns
-
-### Web Technologies
-- HTTP request handling
-- CSRF token management
-- Session management
-- SSL/TLS handling in Python
-
-### Python Libraries
-- **scapy**: Packet manipulation
-- **requests**: HTTP client
-- **BeautifulSoup**: HTML parsing
-- **itertools**: Permutations and combinations
-- **concurrent.futures**: Parallel processing
-- **urllib3**: URL handling and SSL warnings
-
-### Problem-Solving Strategies
-- Binary search optimization
-- Parallel processing for efficiency
-- Progress saving for long operations
-- Smart pattern recognition before brute force
-- Systematic enumeration approaches
-
----
-
-## General CTF Tips Learned
-
-1. **Read Instructions Carefully**
-   - Hints often contain crucial information
-   - Keywords matter ("STACK", "decompile", etc.)
-
-2. **Start Manual, Then Automate**
-   - Manual analysis helps understand the problem
-   - Automation speeds up repetitive tasks
-
-3. **Tool Selection**
-   - Use right tool for the job
-   - Combine tools for complex challenges
-   - Browser DevTools are invaluable for web challenges
-
-4. **Error Handling**
-   - Network operations fail frequently
-   - Always implement retry logic
-   - Save progress for long operations
-
-5. **Pattern Recognition**
-   - Look for common CTF patterns (flag formats, encryption types)
-   - Try obvious solutions first
-   - Document what doesn't work
-
-6. **Resource Discovery**
-   - Check Network tab in DevTools
-   - Look for hidden files (JS, CSS, images)
-   - robots.txt, sitemap.xml
-   - Directory enumeration
-
----
-
-## Commands & Scripts Reference
-
-### Hashcat (Playlist Challenge - bonus learning)
-```bash
-# Basic hash cracking
-hashcat -m 3200 -a 0 hash.txt wordlist.txt
-
-# With rules
-hashcat -m 3200 -a 0 hash.txt wordlist.txt -r rules/best64.rule
-
-# Show cracked passwords
-hashcat -m 3200 hash.txt --show
-```
-
-### Wireshark Filters
-```
-# Filter by UDP port
-udp.port == 2468
-
-# Filter by content
-frame contains "LYRIC:"
-
-# Combine filters
+# Wireshark filter
 udp.port == 2468 && frame contains "LYRIC:"
 ```
 
-### Python Quick Commands
+**Flag:** `D3crypt_Th3_Rhythm`
+
+---
+
+## 2. Where's the Artifact
+
+### Overview
+Web crawling challenge to find a hidden flag among thousands of similar pages.
+
+### Solution Method
+1. **Strategy:** Created Python crawler with binary search pattern
+2. **Optimization:** Used parallel processing (50 concurrent threads)
+3. **Detection:** Pattern matching for flag formats (`flag{...}`, `artifact{...}`)
+
+### Key Implementation
+```python
+# Check strategic points first (middle, quarters)
+# Then full parallel sweep if not found
+# Reduced search time: ~83 min → ~2 min
+```
+
+### Tools Used
+- Python (requests, BeautifulSoup)
+- Concurrent futures for threading
+
+---
+
+## 3. Secret Santa
+
+### Overview
+Image steganography challenge with multi-layer cipher encryption.
+
+### Solution Method
+
+**Step 1: LSB Extraction**
+- Extracted least significant bit from each pixel byte
+- Repacked bits into bytes (MSB-first order)
+- Result: `Xs1i5gn@hh_VmxibkG10m_1h_ufm!`
+
+**Step 2: Cipher Decryption**
+Applied cipher chain:
+1. ROT13
+2. Atbash
+3. ROT13
+
+Result: `Ch1r5tm@ss_EncrypT10n_1s_fun!`
+
+**Step 3: Flag Submission**
+- Submitted exact cipher output (with leetspeak)
+- Do not normalize or clean the text
+
+**Flag:** `CTF{Ch1r5tm@ss_EncrypT10n_1s_fun!}`
+
+### Key Takeaway
+> **Important:** Submit exact cipher output. CTFs expect raw decrypted text, not normalized versions.
+
+---
+
+## 4. Password Cracking
+
+### Overview
+Hash cracking challenge with two passwords: one MD5, one bcrypt.
+
+### Hash Analysis
+
+| Hash Type | Signature | Tool Used |
+|-----------|-----------|-----------|
+| MD5 | 32 hex characters | CyberChef |
+| bcrypt | `$2a$04$...` | Hashcat |
+
+### bcrypt Solution
+
+**Hash Structure:**
+```
+$2a$04$R3woFi8JQxib7WYkzCeLFeSk2Kbuq3qcddLKGZi4te1TluMX2y/cm
+ │   │   └─ Salt + Hash
+ │   └─ Cost factor (04 = 2^4 iterations)
+ └─ bcrypt variant
+```
+
+**Commands:**
 ```bash
-# Install requirements
-pip install requests beautifulsoup4 scapy
+# Create hash file
+echo '$2a$04$...' > hash.txt
 
-# Run scripts
-python script_name.py
+# Download wordlist
+wget https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt
 
-# String extraction (Windows alternative)
-Select-String -Path file.txt -Pattern "checksum"
+# Run hashcat
+hashcat -m 3200 -a 0 hash.txt rockyou.txt
+
+# View result
+hashcat -m 3200 hash.txt --show
 ```
 
-### CyberChef Recipes
+**Parameters:**
+- `-m 3200`: bcrypt mode
+- `-a 0`: Dictionary attack
+- Cost factor 04: Only 16 iterations (modern bcrypt uses 1024+)
+
+**Cracked Password:** `patience`  
+**Time:** ~35 seconds (0.03% through wordlist)
+
+### Security Comparison
+
+| Feature | MD5 | bcrypt |
+|---------|-----|--------|
+| Salt | None | Built-in |
+| Speed | Very fast | Intentionally slow |
+| Iterations | 1 | 2^cost |
+| Security | Broken | Strong |
+
+---
+
+## 5. Mayday
+
+### Overview
+Audio steganography challenge combining Morse code and ROT cipher.
+
+### Solution Method
+
+**Step 1: Morse Decoding**
+- Tool: https://morsecode.world/international/decoder/audio-decoder-adaptive.html
+- Uploaded audio file, automatic decoding
+- Output: `SGEJGE SGEJGE, CK GXK YOTQOTM...`
+
+**Step 2: ROT20 Decryption**
+- Used CyberChef with ROT13 brute force
+- Tested all rotations (1-25)
+- ROT20 revealed readable text
+
+**Step 3: Flag Extraction**
+- Message: "MAYDAY MAYDAY, WE ARE SINKING..."
+- Extracted flag from message
+
+**Flag:** `KYJEDSNCXICJPNDBHVZCAFBESFESFEFEGAFE`
+
+### Encoding Layers
 ```
-Recipe for XOR decryption:
-1. From Hex (Auto delimiter)
-2. XOR
-   - Key: BEAT
-   - UTF8
-   - Scheme: Standard
+Audio (beeps) → Morse Code → ROT20 Cipher → Plain Text → Flag
 ```
 
 ---
 
-## Status Summary
+## 6. Dino Zone Lab
 
-| Challenge | Status | Password/Flag | Difficulty |
-|-----------|--------|---------------|------------|
-| Playlist Pandemonium | ✅ Complete | `D3crypt_Th3_Rhythm` | Medium |
-| Where's the Artifact | ✅ Complete | Found via crawler | Easy-Medium |
-| Secret Santa | ✅ Complete | `CTF{Ch1r5tm@ss_EncrypT10n_1s_fun!}` | Medium |
-| Password Cracking | ✅ Complete | MD5: [cracked], bcrypt: `patience` | Easy-Medium |
-| Mayday | ✅ Complete | `KYJEDSNCXICJPNDBHVZCAFBESFESFEFEGAFE` | Medium |
-| Dino Zone Lab | ❌ Not Completed | Data extraction needed | Medium-Hard |
+### Overview
+Reverse engineering challenge requiring permutation solving with checksum validation.
 
-**Completion Rate: 5/6 (83%)**
+### Challenge Details
+- **Given:** Jumbled passcode `ROWMBLFG`
+- **Required:** Letter IDs and checksum value
+- **Goal:** Find correct order where `Σ(position × letter_id)` equals checksum
+
+### Attempts Made
+1. Tested reverse order, alphabetical, and 24 smart patterns - all failed
+2. Developed multiple brute force scripts (40,320 permutations)
+3. Identified `injected.js` as potential data source
+4. Unable to extract letter IDs or checksum from obfuscated JavaScript
+
+### Scripts Created
+- Pattern guesser (24 patterns)
+- Full brute force with progress saving
+- Smart solver with error handling
+
+### Status
+❌ **Not Completed** - Missing critical data (letter IDs and checksum values)
+
+### What Was Needed
+```python
+# Required but never found:
+letter_ids = {'R': ?, 'O': ?, 'W': ?, 'M': ?, 'B': ?, 'L': ?, 'F': ?, 'G': ?}
+target_checksum = ???
+```
 
 ---
 
-## Files Created During Challenges
+## Tools Reference
 
-1. **artifact_hunter.py** - Web crawler for "Where's the Artifact"
-2. **artifact_bruteforce.py** - Optimized binary search crawler
-3. **dino_passcode_solver.py** - Permutation solver with checksum
-4. **dino_brute_force.py** - Full permutation brute force
-5. **dino_smart_solver.py** - Pattern-based smart solver
-6. **dino_final_brute.py** - Reliable brute force with progress saving
+### Network Analysis
+- **Wireshark**: Packet capture and analysis
+- **Scapy**: Python packet manipulation
 
-All scripts include:
-- Error handling
-- Progress tracking
-- Clear output formatting
-- Resume capability (where applicable)
+### Web Testing
+- **requests**: HTTP client library
+- **BeautifulSoup**: HTML parsing
+
+### Cryptography
+- **CyberChef**: Web-based encoding/decoding tool
+- **Hashcat**: Advanced password cracking
+
+### Common Commands
+
+**Wireshark Filters:**
+```
+udp.port == 2468
+frame contains "LYRIC:"
+```
+
+**Hashcat Modes:**
+```
+-m 0     = MD5
+-m 3200  = bcrypt
+-m 1000  = NTLM
+```
+
+**CyberChef Operations:**
+- XOR Decrypt
+- ROT13/ROTn
+- From Hex
+- Analyze Hash
 
 ---
 
-*Notes compiled from CTF session on January 12, 2026*
+## Key Learnings
+
+### General Strategies
+1. **Read instructions carefully** - Hints contain crucial information
+2. **Start manual, then automate** - Understand before optimizing
+3. **Try obvious solutions first** - Simple approaches often work
+4. **Document failures** - Know what doesn't work
+
+### Technical Skills
+1. **Network forensics** - Packet filtering, protocol analysis
+2. **Steganography** - LSB extraction, audio analysis
+3. **Cryptography** - XOR, ROT, hash cracking
+4. **Web enumeration** - Crawling, parallel processing
+
+### Tool Selection
+1. Use specialized tools for each task
+2. Combine tools for complex challenges
+3. Browser DevTools invaluable for web challenges
+4. CyberChef excellent for quick testing
+
+---
+
+*Documentation last updated: January 12, 2026*
