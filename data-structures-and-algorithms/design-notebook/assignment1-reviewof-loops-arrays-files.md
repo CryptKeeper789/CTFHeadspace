@@ -105,11 +105,19 @@ Close file
 //Obtain values from file and display in increasing order
 
 Reopen file for reading
+read the first line
+display 2D array in a for loop //to match the example output
 for 20 iteration
 - read value from file and display on console
 end for
 Close file
 
+print file path to console //to match example output
+
 ## Lessons Learned 
 
-Select `Uploads` ➜ `Select Files`
+-  I learned the different Java code to create and open a file, write to it, and read from it to the console. 
+- How 2D arrays are organized, how to create them, and how to manipulate nested loops to fill them properly. 
+- That Intellij's debugger is amazing. 
+- That I can use Obsidian as my Design notebook and upload it to my GitHub, via git bash, as a portfolio. (yay free storage) 
+- I got refreshed on some basic syntax, and loops logic that I was a little rusty on. 
