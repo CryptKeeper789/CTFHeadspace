@@ -32,8 +32,8 @@ The program will perform 5 tasks.
 ## Sketch 
 > **Note to TA:** The example design notebook said I may include its sketch in my notebook, so I'm doing a replica of what Mrs. Gonzalez gave us. I use my iPad and stylus because its easier on my carpel tunnel.
 
-![[sketch-notes.png]]
-![[sketch-assignment1.png]]
+![[design-notebook-sketch-notes.png]]
+![[design-notebook-sketch-assignment1.png]]
 ## Pseudocode for Main
 #### //Task #1: Fill array with 20 random values
 Create an array to hold 20 values

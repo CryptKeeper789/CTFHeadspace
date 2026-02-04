@@ -33,10 +33,10 @@ DJ Distortion isn't exactly subtle when they want to leave their mark. They seem
 -  Filter packets by `udp.port == 2468 && frame contains "LYRIC:"`
 -  select each packet and copy the data value 
    
-![[Pasted image 20260110120612.png]]
+![[challenge-how-to-wireshark.png]]
  - go to https://gchq.github.io/CyberChef/ and paste the data value removing everything before and including "3a" because that's the beginning ("LYRIC:" in Hex)
  - repeat for all packets in order
  - Recipe:
 	 - Input: "From Hex"
 	- Operation: "XOR" with key "BEAT" (can set to UTF-8)
-![[Pasted image 20260110120957.png]]**Final Answer: CTF{D3crypt_Th3_Rhythm}**
+![[challenge-recipe-rhythm.png]]**Final Answer: CTF{D3crypt_Th3_Rhythm}**
